@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from fastapi import status
 
-from app.models.employee_data.employee_personal_details_model import PersonalDetails
-from app.employee_management.employee_personal_details.personal_details_schema import (
-    PersonalDetailsCreate, 
-    PersonalDetailsUpdate
+from app.models.employee_data.employee_family_details_model import FamilyDetails
+from app.employee_management.employee_family_details.family_details_schema import (
+    FamilyDetailsCreate, 
+    FamilyDetailsUpdate
 )
 from app.core.utilities.exceptions.base import AppException
 from app.core.constants import ResponseMessage, ErrorCode
@@ -16,48 +16,48 @@ from app.core.constants import ResponseMessage, ErrorCode
 response_message = ResponseMessage()
 
 
-class EmployeePersonalDetailsRepository:
+class EmployeeFamilyDetailsRepository:
     """
-    Repository class for handling all database operations related to employee personal details.
+    Repository class for handling all database operations related to employee family details.
     Implements full CRUD operations with proper error handling and validation.
     """
 
-    async def create_employee_personal_details(
+    async def create_employee_family_details(
         self, 
         db: AsyncSession, 
-        personal_data: PersonalDetailsCreate
-    ) -> PersonalDetails:
+        family_data: FamilyDetailsCreate
+    ) -> FamilyDetails:
         """
-        Create new employee personal details after checking for uniqueness.
+        Create new employee family details after checking for uniqueness.
         
         Args:
             db: Database session
-            personal_data: Personal details data to create
+            family_data: Family details data to create
             
         Returns:
-            PersonalDetails: Created personal details object
+            FamilyDetails: Created family details object
             
         Raises:
-            AppException: If employee already has personal details or database error occurs
+            AppException: If employee already has family details or database error occurs
         """
         try:
-            # Check if personal details already exist for this employee
-            existing_details = await self._get_by_employee_id(db, personal_data.employee_id)
+            # Check if family details already exist for this employee
+            existing_details = await self._get_by_employee_id(db, family_data.employee_id)
             
             if existing_details:
                 raise AppException(
                     message_key=response_message.FORBIDDEN_ACCESS,
-                    details=f"Personal details already exist for employee ID: {personal_data.employee_id}",
+                    details=f"Family details already exist for employee ID: {family_data.employee_id}",
                     status_code=status.HTTP_409_CONFLICT
                 )
             
-            # Create new personal details
-            new_personal_details = PersonalDetails(**personal_data.model_dump())
-            db.add(new_personal_details)
+            # Create new family details
+            new_family_details = FamilyDetails(**family_data.model_dump())
+            db.add(new_family_details)
             await db.commit()
-            await db.refresh(new_personal_details)
+            await db.refresh(new_family_details)
             
-            return new_personal_details
+            return new_family_details
             
         except IntegrityError as e:
             await db.rollback()
@@ -74,27 +74,27 @@ class EmployeePersonalDetailsRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    async def get_employee_personal_details_by_id(
+    async def get_employee_family_details_by_id(
         self, 
         db: AsyncSession, 
-        personal_details_id: str
-    ) -> Optional[PersonalDetails]:
+        family_details_id: str
+    ) -> Optional[FamilyDetails]:
         """
-        Retrieve employee personal details by personal details ID.
+        Retrieve employee family details by family details ID.
         
         Args:
             db: Database session
-            personal_details_id: Unique identifier for personal details
+            family_details_id: Unique identifier for family details
             
         Returns:
-            PersonalDetails or None: Personal details object if found
+            FamilyDetails or None: Family details object if found
             
         Raises:
             AppException: If database error occurs
         """
         try:
-            query = select(PersonalDetails).where(
-                PersonalDetails.employee_personal_details_id == personal_details_id
+            query = select(FamilyDetails).where(
+                FamilyDetails.family_details_id == family_details_id
             )
             result = await db.execute(query)
             return result.scalar_one_or_none()
@@ -102,7 +102,7 @@ class EmployeePersonalDetailsRepository:
         except SQLAlchemyError as e:
             raise AppException(
                 message_key="DB_ERROR",
-                details=f"Failed to retrieve personal details: {str(e)}",
+                details=f"Failed to retrieve family details: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -110,16 +110,16 @@ class EmployeePersonalDetailsRepository:
         self, 
         db: AsyncSession, 
         employee_id: str
-    ) -> Optional[PersonalDetails]:
+    ) -> Optional[FamilyDetails]:
         """
-        Retrieve employee personal details by employee ID.
+        Retrieve employee family details by employee ID.
         
         Args:
             db: Database session
             employee_id: Employee identifier
             
         Returns:
-            PersonalDetails or None: Personal details object if found
+            FamilyDetails or None: Family details object if found
             
         Raises:
             AppException: If database error occurs
@@ -130,24 +130,24 @@ class EmployeePersonalDetailsRepository:
         except SQLAlchemyError as e:
             raise AppException(
                 message_key="DB_ERROR",
-                details=f"Failed to retrieve personal details for employee: {str(e)}",
+                details=f"Failed to retrieve family details for employee: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    async def get_employee_personal_details_by_employee_id(
+    async def get_employee_family_details_by_employee_id(
         self, 
         db: AsyncSession, 
         employee_id: str
-    ) -> Optional[PersonalDetails]:
+    ) -> Optional[FamilyDetails]:
         """
-        Retrieve employee personal details by employee ID.
+        Retrieve employee family details by employee ID.
         
         Args:
             db: Database session
             employee_id: Employee identifier
             
         Returns:
-            PersonalDetails or None: Personal details object if found
+            FamilyDetails or None: Family details object if found
             
         Raises:
             AppException: If database error occurs
@@ -158,18 +158,18 @@ class EmployeePersonalDetailsRepository:
         except SQLAlchemyError as e:
             raise AppException(
                 message_key="DB_ERROR",
-                details=f"Failed to retrieve personal details for employee: {str(e)}",
+                details=f"Failed to retrieve family details for employee: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    async def get_all_employee_personal_details(
+    async def get_all_employee_family_details(
         self, 
         db: AsyncSession,
         skip: int = 0,
         limit: int = 100
-    ) -> List[PersonalDetails]:
+    ) -> List[FamilyDetails]:
         """
-        Retrieve all employee personal details with pagination.
+        Retrieve all employee family details with pagination.
         
         Args:
             db: Database session
@@ -177,53 +177,53 @@ class EmployeePersonalDetailsRepository:
             limit: Maximum number of records to return
             
         Returns:
-            List[PersonalDetails]: List of personal details objects
+            List[FamilyDetails]: List of family details objects
             
         Raises:
             AppException: If database error occurs
         """
         try:
-            query = select(PersonalDetails).offset(skip).limit(limit)
+            query = select(FamilyDetails).offset(skip).limit(limit)
             result = await db.execute(query)
             return result.scalars().all()
             
         except SQLAlchemyError as e:
             raise AppException(
                 message_key="DB_ERROR",
-                details=f"Failed to retrieve personal details list: {str(e)}",
+                details=f"Failed to retrieve family details list: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    async def update_employee_personal_details(
+    async def update_employee_family_details(
         self, 
         db: AsyncSession, 
-        personal_details_id: str,
-        update_data: PersonalDetailsUpdate
-    ) -> Optional[PersonalDetails]:
+        family_details_id: str,
+        update_data: FamilyDetailsUpdate
+    ) -> Optional[FamilyDetails]:
         """
-        Update employee personal details.
+        Update employee family details.
         
         Args:
             db: Database session
-            personal_details_id: Unique identifier for personal details
+            family_details_id: Unique identifier for family details
             update_data: Data to update
             
         Returns:
-            PersonalDetails or None: Updated personal details object
+            FamilyDetails or None: Updated family details object
             
         Raises:
-            AppException: If personal details not found or database error occurs
+            AppException: If family details not found or database error occurs
         """
         try:
-            # Check if personal details exist
-            existing_details = await self.get_employee_personal_details_by_id(
-                db, personal_details_id
+            # Check if family details exist
+            existing_details = await self.get_employee_family_details_by_id(
+                db, family_details_id
             )
             
             if not existing_details:
                 raise AppException(
                     message_key=response_message.RESOURCE_NOT_FOUND,
-                    details=f"Personal details not found with ID: {personal_details_id}",
+                    details=f"Family details not found with ID: {family_details_id}",
                     status_code=status.HTTP_404_NOT_FOUND
                 )
             
@@ -236,10 +236,10 @@ class EmployeePersonalDetailsRepository:
             
             # Perform update
             query = (
-                update(PersonalDetails)
-                .where(PersonalDetails.employee_personal_details_id == personal_details_id)
+                update(FamilyDetails)
+                .where(FamilyDetails.family_details_id == family_details_id)
                 .values(**update_dict)
-                .returning(PersonalDetails)
+                .returning(FamilyDetails)
             )
             
             result = await db.execute(query)
@@ -262,18 +262,18 @@ class EmployeePersonalDetailsRepository:
             await db.rollback()
             raise AppException(
                 message_key="DB_ERROR",
-                details=f"Failed to update personal details: {str(e)}",
+                details=f"Failed to update family details: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    async def update_employee_personal_details_by_employee_id(
+    async def update_employee_family_details_by_employee_id(
         self, 
         db: AsyncSession, 
         employee_id: str,
-        update_data: PersonalDetailsUpdate
-    ) -> Optional[PersonalDetails]:
+        update_data: FamilyDetailsUpdate
+    ) -> Optional[FamilyDetails]:
         """
-        Update employee personal details by employee ID.
+        Update employee family details by employee ID.
         
         Args:
             db: Database session
@@ -281,19 +281,19 @@ class EmployeePersonalDetailsRepository:
             update_data: Data to update
             
         Returns:
-            PersonalDetails or None: Updated personal details object
+            FamilyDetails or None: Updated family details object
             
         Raises:
-            AppException: If personal details not found or database error occurs
+            AppException: If family details not found or database error occurs
         """
         try:
-            # Check if personal details exist for this employee
+            # Check if family details exist for this employee
             existing_details = await self._get_by_employee_id(db, employee_id)
             
             if not existing_details:
                 raise AppException(
                     message_key=response_message.RESOURCE_NOT_FOUND,
-                    details=f"Personal details not found for employee ID: {employee_id}",
+                    details=f"Family details not found for employee ID: {employee_id}",
                     status_code=status.HTTP_404_NOT_FOUND
                 )
             
@@ -306,10 +306,10 @@ class EmployeePersonalDetailsRepository:
             
             # Perform update
             query = (
-                update(PersonalDetails)
-                .where(PersonalDetails.employee_id == employee_id)
+                update(FamilyDetails)
+                .where(FamilyDetails.employee_id == employee_id)
                 .values(**update_dict)
-                .returning(PersonalDetails)
+                .returning(FamilyDetails)
             )
             
             result = await db.execute(query)
@@ -332,21 +332,21 @@ class EmployeePersonalDetailsRepository:
             await db.rollback()
             raise AppException(
                 message_key="DB_ERROR",
-                details=f"Failed to update personal details: {str(e)}",
+                details=f"Failed to update family details: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    async def delete_employee_personal_details(
+    async def delete_employee_family_details(
         self, 
         db: AsyncSession, 
-        personal_details_id: str
+        family_details_id: str
     ) -> bool:
         """
-        Delete employee personal details.
+        Delete employee family details.
         
         Args:
             db: Database session
-            personal_details_id: Unique identifier for personal details
+            family_details_id: Unique identifier for family details
             
         Returns:
             bool: True if deletion successful, False if not found
@@ -355,21 +355,21 @@ class EmployeePersonalDetailsRepository:
             AppException: If database error occurs
         """
         try:
-            # Check if personal details exist
-            existing_details = await self.get_employee_personal_details_by_id(
-                db, personal_details_id
+            # Check if family details exist
+            existing_details = await self.get_employee_family_details_by_id(
+                db, family_details_id
             )
             
             if not existing_details:
                 raise AppException(
                     message_key=response_message.RESOURCE_NOT_FOUND,
-                    details=f"Personal details not found with ID: {personal_details_id}",
+                    details=f"Family details not found with ID: {family_details_id}",
                     status_code=status.HTTP_404_NOT_FOUND
                 )
             
-            # Delete personal details
-            query = delete(PersonalDetails).where(
-                PersonalDetails.employee_personal_details_id == personal_details_id
+            # Delete family details
+            query = delete(FamilyDetails).where(
+                FamilyDetails.family_details_id == family_details_id
             )
             
             result = await db.execute(query)
@@ -381,19 +381,19 @@ class EmployeePersonalDetailsRepository:
             await db.rollback()
             raise AppException(
                 message_key="DB_ERROR",
-                details=f"Failed to delete personal details: {str(e)}",
+                details=f"Failed to delete family details: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    async def search_personal_details(
+    async def search_family_details(
         self, 
         db: AsyncSession,
         search_term: str,
         skip: int = 0,
         limit: int = 100
-    ) -> List[PersonalDetails]:
+    ) -> List[FamilyDetails]:
         """
-        Search employee personal details by name or email.
+        Search employee family details by family member names.
         
         Args:
             db: Database session
@@ -402,7 +402,7 @@ class EmployeePersonalDetailsRepository:
             limit: Maximum number of records to return
             
         Returns:
-            List[PersonalDetails]: List of matching personal details
+            List[FamilyDetails]: List of matching family details
             
         Raises:
             AppException: If database error occurs
@@ -410,10 +410,12 @@ class EmployeePersonalDetailsRepository:
         try:
             search_pattern = f"%{search_term.lower()}%"
             
-            query = select(PersonalDetails).where(
-                (PersonalDetails.first_name.ilike(search_pattern)) |
-                (PersonalDetails.last_name.ilike(search_pattern)) |
-                (PersonalDetails.personal_email.ilike(search_pattern))
+            query = select(FamilyDetails).where(
+                (FamilyDetails.father_name.ilike(search_pattern)) |
+                (FamilyDetails.mother_name.ilike(search_pattern)) |
+                (FamilyDetails.spouse_name.ilike(search_pattern)) |
+                (FamilyDetails.children_name.ilike(search_pattern)) |
+                (FamilyDetails.sibling_names.ilike(search_pattern))
             ).offset(skip).limit(limit)
             
             result = await db.execute(query)
@@ -426,9 +428,9 @@ class EmployeePersonalDetailsRepository:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    async def get_personal_details_count(self, db: AsyncSession) -> int:
+    async def get_family_details_count(self, db: AsyncSession) -> int:
         """
-        Get total count of personal details records.
+        Get total count of family details records.
         
         Args:
             db: Database session
@@ -441,7 +443,7 @@ class EmployeePersonalDetailsRepository:
         """
         try:
             from sqlalchemy import func
-            query = select(func.count(PersonalDetails.employee_personal_details_id))
+            query = select(func.count(FamilyDetails.family_details_id))
             result = await db.execute(query)
             return result.scalar_one()
             
@@ -457,17 +459,17 @@ class EmployeePersonalDetailsRepository:
         self, 
         db: AsyncSession, 
         employee_id: str
-    ) -> Optional[PersonalDetails]:
+    ) -> Optional[FamilyDetails]:
         """
-        Private method to get personal details by employee ID.
+        Private method to get family details by employee ID.
         
         Args:
             db: Database session
             employee_id: Employee identifier
             
         Returns:
-            PersonalDetails or None: Personal details object if found
+            FamilyDetails or None: Family details object if found
         """
-        query = select(PersonalDetails).where(PersonalDetails.employee_id == employee_id)
+        query = select(FamilyDetails).where(FamilyDetails.employee_id == employee_id)
         result = await db.execute(query)
         return result.scalar_one_or_none()
