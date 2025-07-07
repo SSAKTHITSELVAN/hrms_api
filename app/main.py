@@ -9,6 +9,7 @@ from app.models.employee_data.employee_personal_details_model import PersonalDet
 from app.models.employee_data.employee_address_model import Address
 from app.models.employee_data.employee_education_model import Education
 from app.models.employee_data.employee_family_details_model import FamilyDetails
+from app.models.employee_data.employee_emergency_contacts_model import EmergencyContact
 
 from app.organization import company_router
 from app.department import department_router
@@ -18,6 +19,7 @@ from app.employee_management.employee_personal_details import personal_details_r
 from app.employee_management.employee_address import address_router
 from app.employee_management.employee_education import education_router
 from app.employee_management.employee_family_details import family_details_router
+from app.employee_management.employee_emergency_contacts import emergency_contacts_router
 
 from fastapi import FastAPI, Request
 from app.core.utilities.exceptions.base import AppException
@@ -56,6 +58,7 @@ app.include_router(personal_details_router.router, prefix="/api/v1")
 app.include_router(address_router.router, prefix="/api/v1")
 app.include_router(education_router.router, prefix="/api/v1")
 app.include_router(family_details_router.router, prefix="/api/v1")
+app.include_router(emergency_contacts_router.router, prefix="/api/v1")
 
 @app.get("/")
 async def hrms():

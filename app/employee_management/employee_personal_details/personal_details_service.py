@@ -442,7 +442,9 @@ class EmployeePersonalDetailsService:
         """
         import re
         # Basic phone validation - adjust pattern as needed
-        phone_pattern = r'^[\+]?[1-9][\d]{0,15}$'
+        # phone_pattern = r'^[\+]?[1-9][\d]{0,15}$'
+        phone_pattern = r'^\+?[\d\s\-\(\)]{7,25}$'
+        
         clean_phone = re.sub(r'[\s\-\(\)]', '', phone)
         if not re.match(phone_pattern, clean_phone):
             raise AppException(
